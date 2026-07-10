@@ -2,60 +2,79 @@
 //  DocumentsView.swift
 //  DocDoc
 //
-//  Created by Сергей Мещеряков on 03.07.2026.
-//
 
-import Foundation
 import SwiftUI
 
 struct DocumentsView: View {
-    @State var documents: [Document] = Document.mockDocuments
-    @State private var search: String = ""
+    let documents: [Document]
+    var onScan: () -> Void
+
+    @State private var search = ""
+
+    private var filteredDocuments: [Document] {
+        guard !search.trimmingCharacters(in: .whitespaces).isEmpty else {
+            return documents
+        }
+        return documents.filter {
+            $0.title.localizedCaseInsensitiveContains(search)
+        }
+    }
 
     var body: some View {
-        VStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    Text("Документы")
-                        .font(.largeTitle)
-                        .bold()
-                        .padding()
-                    Spacer()
-                    Button(
-                        action: {
-                            //
-                        }, label: {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Text("Документы")
+                            .font(.system(size: 28, weight: .bold))
+                        Spacer()
+                        Button(action: onScan) {
                             Image(systemName: "plus")
-                                .foregroundStyle(Color.black)
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(DocDocTheme.accent)
+                                .frame(width: 40, height: 40)
+                                .background(DocDocTheme.accentSoft)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                    )
-                    .padding()
+                    }
+                    .padding(.horizontal, 20)
+
+                    searchField
+                        .padding(.horizontal, 20)
+
+                    LazyVStack(spacing: 8) {
+                        ForEach(filteredDocuments) { document in
+                            LibraryDocumentRow(document: document)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
                 }
-                TextField("Поиск документов...", text: $search)
-                    .padding()
-                    .background(Color(.white))
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color(.stroke), lineWidth: 2)
-                    )
-                    .padding(.horizontal)
+                .padding(.top, 8)
             }
-            List {
-                ForEach(documents, id: \.self) { document in
-                    DocumentRowItem(document: document)
-                        .listRowInsets(EdgeInsets())
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color(.clear))
-                }
-            }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
+            .background(DocDocTheme.background)
+            .navigationBarHidden(true)
         }
-        .background(Color(.background))
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(DocDocTheme.textSecondary)
+            TextField("Поиск документов...", text: $search)
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(DocDocTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(DocDocTheme.stroke, lineWidth: 1)
+        )
     }
 }
 
 #Preview {
-    DocumentsView()
+    DocumentsView(documents: Document.mockDocuments, onScan: {})
 }

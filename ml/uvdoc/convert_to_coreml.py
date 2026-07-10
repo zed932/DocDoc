@@ -22,8 +22,9 @@ def convert_to_coreml(ckpt_path: str, save_path: str, img_size: tuple[int, int])
     converted_model = ct.convert(
         traced_model,
         convert_to="mlprogram",
-        inputs=[ct.TensorType(shape=dummy_input.shape)],
-        outputs=[ct.TensorType(name="img")]
+        inputs=[ct.TensorType(name="x", shape=dummy_input.shape)],
+        outputs=[ct.TensorType(name="img")],
+        minimum_deployment_target=ct.target.iOS17,
     )
     converted_model.save(save_path + '.mlpackage')
     
