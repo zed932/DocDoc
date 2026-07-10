@@ -6,34 +6,30 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @Environment(DocumentStore.self) private var documentStore
-
     @State private var selectedTab: AppTab = .home
     @State private var showCamera = false
     @State private var pendingCapture: UIImage?
     @State private var activeScan: CapturedScan?
+    @State private var openedDocument: Document?
 
     var body: some View {
         TabView(selection: $selectedTab) {
             MainView(
                 selectedTab: $selectedTab,
-                documents: documentStore.documents,
                 onScan: openCamera,
-                onImagePicked: startProcessing
+                onImagePicked: startProcessing,
+                onOpenDocument: { openedDocument = $0 }
             )
             .tabItem {
                 Label("Главная", systemImage: "house.fill")
             }
             .tag(AppTab.home)
 
-            DocumentsView(
-                documents: documentStore.documents,
-                onScan: openCamera
-            )
-            .tabItem {
-                Label("Документы", systemImage: "folder.fill")
-            }
-            .tag(AppTab.documents)
+            DocumentsView(onScan: openCamera)
+                .tabItem {
+                    Label("Документы", systemImage: "folder.fill")
+                }
+                .tag(AppTab.documents)
 
             SettingsView()
                 .tabItem {
@@ -53,6 +49,9 @@ struct MainTabView: View {
                 activeScan = nil
                 showCamera = true
             }
+        }
+        .fullScreenCover(item: $openedDocument) { document in
+            DocumentDetailView(document: document)
         }
     }
 

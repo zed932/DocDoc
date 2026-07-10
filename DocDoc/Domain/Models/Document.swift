@@ -5,13 +5,16 @@
 
 import Foundation
 
-struct Document: Identifiable, Hashable {
+struct Document: Identifiable, Hashable, Codable {
     let id: UUID
     var title: String
     var pagesCount: Int
     var systemImage: String
     var dateLabel: String
     var fileSize: String?
+    var pdfFileName: String
+    var thumbnailFileName: String?
+    var createdAt: Date
 
     init(
         id: UUID = UUID(),
@@ -19,7 +22,10 @@ struct Document: Identifiable, Hashable {
         pagesCount: Int,
         systemImage: String = "doc.fill",
         dateLabel: String,
-        fileSize: String? = nil
+        fileSize: String? = nil,
+        pdfFileName: String,
+        thumbnailFileName: String? = nil,
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.title = title
@@ -27,20 +33,43 @@ struct Document: Identifiable, Hashable {
         self.systemImage = systemImage
         self.dateLabel = dateLabel
         self.fileSize = fileSize
+        self.pdfFileName = pdfFileName
+        self.thumbnailFileName = thumbnailFileName
+        self.createdAt = createdAt
     }
 }
 
 extension Document {
     static var mockDocuments: [Document] {
         [
-            Document(title: "Паспорт — стр. 2-3", pagesCount: 2, dateLabel: "Сегодня, 14:32", fileSize: "1.2 MB"),
-            Document(title: "Договор аренды", pagesCount: 5, dateLabel: "Вчера", fileSize: "420 KB"),
-            Document(title: "Справка с работы", pagesCount: 1, dateLabel: "28 июн", fileSize: "180 KB"),
-            Document(title: "Мед. полис", pagesCount: 2, dateLabel: "15 июн", fileSize: "310 KB"),
-            Document(title: "Техническое задание", pagesCount: 24, systemImage: "doc.richtext.fill", dateLabel: "3 июл 2026", fileSize: "2.1 MB"),
-            Document(title: "Доверенность", pagesCount: 3, systemImage: "doc.badge.plus", dateLabel: "2 июл 2026", fileSize: "540 KB"),
-            Document(title: "Акт выполненных работ", pagesCount: 5, systemImage: "checkmark.doc.fill", dateLabel: "28 июн 2026", fileSize: "390 KB"),
-            Document(title: "Приказ №127", pagesCount: 2, systemImage: "doc.text.magnifyingglass", dateLabel: "20 июн 2026", fileSize: "210 KB"),
+            Document(
+                title: "Паспорт — стр. 2-3",
+                pagesCount: 2,
+                dateLabel: "Сегодня, 14:32",
+                fileSize: "1.2 MB",
+                pdfFileName: "mock-1.pdf"
+            ),
+            Document(
+                title: "Договор аренды",
+                pagesCount: 5,
+                dateLabel: "Вчера",
+                fileSize: "420 KB",
+                pdfFileName: "mock-2.pdf"
+            ),
+            Document(
+                title: "Справка с работы",
+                pagesCount: 1,
+                dateLabel: "28 июн",
+                fileSize: "180 KB",
+                pdfFileName: "mock-3.pdf"
+            ),
+            Document(
+                title: "Мед. полис",
+                pagesCount: 2,
+                dateLabel: "15 июн",
+                fileSize: "310 KB",
+                pdfFileName: "mock-4.pdf"
+            ),
         ]
     }
 
@@ -65,5 +94,12 @@ extension Document {
 
     var homeMetaLabel: String {
         "\(dateLabel) · \(pagesLabel)"
+    }
+
+    var exportFileName: String {
+        let sanitized = title
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: "/", with: "-")
+        return "\(sanitized).pdf"
     }
 }

@@ -7,13 +7,17 @@ import PhotosUI
 import SwiftUI
 
 struct MainView: View {
+    @Environment(DocumentStore.self) private var documentStore
+
     @Binding var selectedTab: AppTab
-    let documents: [Document]
     var onScan: () -> Void
     var onImagePicked: (UIImage) -> Void
+    var onOpenDocument: (Document) -> Void
+
+    @State private var shareURL: URL?
 
     private var recentDocuments: [Document] {
-        Array(documents.prefix(3))
+        Array(documentStore.documents.prefix(3))
     }
 
     var body: some View {
@@ -36,6 +40,11 @@ struct MainView: View {
             }
             .background(DocDocTheme.background)
             .navigationBarHidden(true)
+        }
+        .sheet(isPresented: shareSheetBinding) {
+            if let shareURL {
+                ActivityView(items: [shareURL])
+            }
         }
     }
 
@@ -113,10 +122,26 @@ struct MainView: View {
 
             VStack(spacing: 8) {
                 ForEach(recentDocuments) { document in
-                    DocumentCardView(document: document)
+                    DocumentCardView(
+                        document: document,
+                        thumbnail: documentStore.thumbnail(for: document),
+                        onTap: { onOpenDocument(document) },
+                        onShare: { share(document) }
+                    )
                 }
             }
         }
+    }
+
+    private var shareSheetBinding: Binding<Bool> {
+        Binding(
+            get: { shareURL != nil },
+            set: { if !$0 { shareURL = nil } }
+        )
+    }
+
+    private func share(_ document: Document) {
+        shareURL = documentStore.pdfURL(for: document)
     }
 
     private var greeting: String {
@@ -190,8 +215,9 @@ private struct GalleryQuickAction: View {
 #Preview {
     MainView(
         selectedTab: .constant(.home),
-        documents: Document.mockDocuments,
         onScan: {},
-        onImagePicked: { _ in }
+        onImagePicked: { _ in },
+        onOpenDocument: { _ in }
     )
+    .environment(DocumentStore(documents: Document.mockDocuments))
 }

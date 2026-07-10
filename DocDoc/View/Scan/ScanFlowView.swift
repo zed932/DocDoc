@@ -18,6 +18,8 @@ struct ScanFlowView: View {
     @State private var errorMessage: String?
     @State private var showShareSheet = false
 
+    @State private var saveError: String?
+
     var body: some View {
         NavigationStack {
             Group {
@@ -81,6 +83,18 @@ struct ScanFlowView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: showShareSheet)
+        .alert("Не удалось сохранить", isPresented: saveErrorBinding) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveError ?? "")
+        }
+    }
+
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(
+            get: { saveError != nil },
+            set: { if !$0 { saveError = nil } }
+        )
     }
 
     private var documentBinding: Binding<ScannedDocument> {
@@ -110,7 +124,11 @@ struct ScanFlowView: View {
 
     private func saveToDocuments(_ data: Data) {
         guard let document else { return }
-        documentStore.add(document, pdfSize: data.count)
+        do {
+            try documentStore.add(document, pdfData: data)
+        } catch {
+            saveError = error.localizedDescription
+        }
     }
 }
 
