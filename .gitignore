@@ -3,6 +3,9 @@
 *.pyc
 .DS_Store
 **/.DS_Store
+*venv
+*.python-version
+*.tflite
 
 DerivedData/
 .build/
